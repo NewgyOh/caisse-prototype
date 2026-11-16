@@ -112,8 +112,8 @@ R.reg=()=>`<div class=pad><h2>Réglages : ${MODE=="demo"?"mode démo":"mode rée
 <p>${MODE=="demo"?"Catalogue de démonstration (fruits, légumes, vêtements…) pour s'entraîner. Aucun lien avec le mode réel.":"Magasin réel : articles, stock et ventes 100 % manuels, séparés du mode démo."}</p>
 <input value="${esc(S.shop||"")}" placeholder="Nom du magasin (affiché sur le ticket)" onchange="S.shop=this.value;save()">
 <div class=row><button onclick="switchMode()">⇄ Passer en mode ${MODE=="demo"?"réel":"démo"}</button><button onclick="exp()">⬇ Sauvegarder ce mode (JSON)</button><div class=restore-area><label for=backupFile>⬆ Restaurer une sauvegarde</label><input id=backupFile type=file accept=".json,application/json" onchange="const f=this.files&&this.files[0];if(f)imp(f);this.value=''"></div></div>
-<button onclick="reset()">${MODE=="demo"?"↺ Remettre le catalogue de démonstration":"🗑 Vider le magasin réel (articles, stock, ventes)"}</button></div>`;
-function reset(){yes(MODE=="demo"?"Remettre le catalogue de démonstration, les stocks et vider les ventes ?":"Supprimer TOUS les articles, le stock et les ventes du mode réel ?",()=>{try{localStorage.removeItem(K(MODE));localStorage.removeItem("caisse.v1")}catch(e){}load(MODE);go("reg")})}
+<button onclick="reset()">${MODE=="demo"?"↺ Rétablir le catalogue de démonstration":"🗑 Vider le magasin réel (articles, stock, ventes)"}</button></div>`;
+function reset(){yes(MODE=="demo"?"Rétablir le catalogue de démonstration, les stocks et vider les ventes ?":"Supprimer TOUS les articles, le stock et les ventes du mode réel ?",()=>{try{localStorage.removeItem(K(MODE));localStorage.removeItem("caisse.v1")}catch(e){}load(MODE);go("reg")})}
 function exp(){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:"application/json"}));a.download="caisse-sauvegarde.json";a.click()}
 function imp(f){
  if(!f)return;
