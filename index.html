@@ -114,7 +114,37 @@ R.reg=()=>`<div class=pad><h2>Réglages : ${MODE=="demo"?"mode démo":"mode rée
 <div class=row><button onclick="switchMode()">⇄ Passer en mode ${MODE=="demo"?"réel":"démo"}</button><button onclick="exp()">⬇ Sauvegarder ce mode (JSON)</button><label class=row style="cursor:pointer"><button style="pointer-events:none">⬆ Restaurer une sauvegarde</button><input type=file accept=.json hidden onchange="imp(this.files[0])"></label></div>
 <button onclick="reset()">${MODE=="demo"?"↺ Remettre le catalogue de démonstration":"🗑 Vider le magasin réel (articles, stock, ventes)"}</button></div>`;
 function reset(){yes(MODE=="demo"?"Remettre le catalogue de démonstration, les stocks et vider les ventes ?":"Supprimer TOUS les articles, le stock et les ventes du mode réel ?",()=>{try{localStorage.removeItem(K(MODE));localStorage.removeItem("caisse.v1")}catch(e){}load(MODE);go("reg")})}
-function exp(){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:"application/json"}));a.download="caisse-sauvegarde.json";a.click()}
+async function exp(){
+  const contenu=JSON.stringify(S,null,2);
+  const nom="caisse-sauvegarde.json";
+  const fichier=new Blob([contenu],{type:"application/json;charset=utf-8"});
+  try{
+    // Sur iPhone/iPad, le téléchargement par lien peut être ignoré dans une PWA.
+    // Le partage de fichier permet alors d'enregistrer la sauvegarde dans Fichiers.
+    const ios=/iPad|iPhone|iPod/.test(navigator.userAgent)||
+      (navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+    if(ios&&navigator.share&&typeof File!=="undefined"){
+      const f=new File([fichier],nom,{type:"application/json"});
+      if(!navigator.canShare||navigator.canShare({files:[f]})){
+        await navigator.share({files:[f],title:"Sauvegarde de la caisse"});
+        return;
+      }
+    }
+    const url=URL.createObjectURL(fichier);
+    const a=document.createElement("a");
+    a.href=url;
+    a.download=nom;
+    a.style.display="none";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    // Laisser au navigateur le temps de démarrer le téléchargement.
+    setTimeout(()=>URL.revokeObjectURL(url),60000);
+  }catch(e){
+    if(e&&e.name==="AbortError")return;
+    info("Export impossible dans ce navigateur. Essayez depuis le menu de partage ou un navigateur récent.");
+  }
+}
 function imp(f){if(!f)return;const r=new FileReader();r.onload=()=>{try{S=JSON.parse(r.result);save();location.reload()}catch(e){info("Fichier invalide")}};r.readAsText(f)}
 if("serviceWorker"in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("sw.js");
 go("caisse");
